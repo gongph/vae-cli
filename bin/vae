@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+require('commander')
+  .version(require('../package.json').version)
+  .usage('<command> [options]')
+  .command('init', 'generate a new vue project from a template')
+  .command('list', 'list available template')
+  .parse(process.argv)
