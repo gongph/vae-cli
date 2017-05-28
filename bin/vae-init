@@ -39,3 +39,10 @@ function help () {
   if (program.args.length < 1) return program.help() 
 }
 help()
+
+/**
+ * Settings
+ */
+console.log(program.clone)
+var template = program.args[0]
+var rawName = program.args[1]
