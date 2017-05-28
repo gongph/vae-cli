@@ -7,6 +7,9 @@ var path = require('path')
 var ora = require('ora')
 var rm = require('rimraf').sync
 var chalk = require('chalk')
+var home = require('user-home')
+var inquirer = require('inquirer')
+var logger = require('npmlog')
 
 /**
  *  Usage
@@ -43,6 +46,75 @@ help()
 /**
  * Settings
  */
-console.log(program.clone)
+
 var template = program.args[0]
 var rawName = program.args[1]
+var inPlace = !rawName || rawName === '.'
+var clone = program.clone || true
+var dirName = inPlace ? path.resolve('.').split(path.sep).pop() : rawName
+
+var projectPath = path.join(process.cwd(), dirName)
+
+/**
+ * Padding
+ */
+
+console.log()
+process.on('exit', function () {
+  console.log()
+})
+
+/**
+ * Prompt
+ */
+
+function confirm ( message ) {
+  return inquirer.prompt([{
+    type: 'confirm',
+    name: 'ok',
+    message
+  }])
+}
+
+/**
+ * Mkdir directory
+ */
+
+function mkdir (dirpath) {
+  fs.mkdir(projectPath, 484,  err => {
+    if (err) logger.error('ERR', err)
+  })
+}
+
+if (fs.existsSync(projectPath)) {
+  confirm('Target directory exists. Continue?')
+  .then(function (answers) {
+    if (answers.ok) {
+      rm(projectPath)
+      mkdir(projectPath)
+      downloadTemplate(projectPath)
+    }
+  })
+}
+else {
+  confirm('Generate project in current directory?')
+  .then(function (answers) {
+    if (answers.ok) {
+      mkdir(projectPath)
+      downloadTemplate(projectPath)
+    }
+  })
+}
+
+function downloadTemplate (dirpath) {
+  var spinner = ora('downloading template ')
+  spinner.start()
+
+  // Remove if local template exists
+  var temp = path.join(dirpath, template)
+  if (fs.existsSync(temp)) rm(temp)
+  download('gongph/' + template, dirpath, { clone: clone }, err => {
+    spinner.stop()
+    if (err) console.log(err)
+  })
+}
